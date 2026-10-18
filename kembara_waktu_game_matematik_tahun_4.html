@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kembara Waktu: Pengembara Masa Matematik Tahun 4</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        timePurple: '#6d28d9',
+                        timeIndigo: '#4f46e5',
+                        timeGold: '#f59e0b',
+                        timeCyan: '#06b6d4',
+                        timePink: '#ec4899',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            user-select: none;
+        }
+
+        .font-game {
+            font-family: 'Fredoka', cursive;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .btn-bounce:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.5);
+        }
+
+        .btn-bounce:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .card-flip {
+            transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .card-flip:hover {
+            transform: scale(1.03);
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px rgba(109, 40, 217, 0.4); }
+            100% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.8); }
+        }
+
+        /* Custom scrollbar for popup calculator */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6d28d9;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen overflow-x-hidden relative text-slate-100">
+
+    <!-- Top Navigation Header -->
+    <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showScreen('screen-welcome')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white text-xl shadow-lg">
+                    <i class="fa-solid fa-hourglass-half animate-spin" style="animation-duration: 8s;"></i>
+                </div>
+                <div>
+                    <h1 class="font-game text-xl md:text-2xl font-bold bg-gradient-to-r from-amber-300 via-pink-400 to-indigo-300 bg-clip-text text-transparent">
+                        KEMBARA WAKTU
+                    </h1>
+                    <p class="text-xs text-slate-400">Matematik Tahun 4 • KSSR Semakan</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="flex items-center space-x-3 md:space-x-6">
+                <!-- Sound Toggle -->
+                <button id="sound-btn" onclick="toggleSound()" class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+                </button>
+
+                <!-- Points -->
+                <div class="bg-slate-800/90 border border-amber-500/40 rounded-full px-3 py-1 flex items-center space-x-2">
+                    <i class="fa-solid fa-star text-amber-400 text-lg"></i>
+                    <span id="player-score" class="font-game text-amber-300 font-bold text-lg">0</span>
+                </div>
+
+                <!-- Combo Badge -->
+                <div id="combo-badge" class="hidden bg-gradient-to-r from-pink-500 to-amber-500 text-white font-game text-xs font-bold px-2.5 py-1 rounded-full animate-bounce">
+                    2x COMBO!
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 flex flex-col justify-center my-4">
+
+        <!-- SCREEN 1: WELCOME / MAIN MENU -->
+        <section id="screen-welcome" class="space-y-6 text-center py-6">
+            <div class="inline-block p-4 rounded-3xl bg-indigo-900/40 border border-indigo-500/30 backdrop-blur-md mb-2">
+                <i class="fa-solid fa-clock-rotate-left text-6xl text-amber-400 mb-2 animate-bounce"></i>
+                <h2 class="font-game text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-300 to-cyan-300">
+                    Kembara Pengembara Masa
+                </h2>
+                <p class="text-slate-300 text-sm md:text-base max-w-xl mx-auto mt-2">
+                    Sertai misi menjelajah zaman! Selesaikan ayat matematik tambah dan tolak tiga nilai masa untuk membaiki Mesin Masa Kapten Kronos.
+                </p>
+            </div>
+
+            <!-- Player Name Input -->
+            <div class="max-w-md mx-auto glass-card p-6 rounded-2xl">
+                <label class="block text-left text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">Nama Kapten Masa:</label>
+                <input type="text" id="player-name-input" placeholder="Masukkan nama kamu..." value="Pengembara Bijak" 
+                       class="w-full bg-slate-900/80 border border-indigo-500/50 rounded-xl px-4 py-3 text-amber-200 font-game text-lg focus:outline-none focus:ring-2 focus:ring-amber-400 text-center">
+            </div>
+
+            <!-- Level Selector Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto text-left">
+                <!-- Level 1 Card -->
+                <div onclick="startLevel(1)" class="glass-card p-5 rounded-2xl border-l-4 border-l-cyan-400 cursor-pointer btn-bounce relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-cyan-500/10 text-8xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-link"></i>
+                    </div>
+                    <span class="bg-cyan-500/20 text-cyan-300 text-xs font-bold px-2.5 py-1 rounded-md border border-cyan-500/30">TP 1</span>
+                    <h3 class="font-game text-xl font-bold text-cyan-200 mt-2">Aras 1: Padanan Waktu</h3>
+                    <p class="text-xs text-slate-300 mt-1">Uji perkaitan unit masa (Jam & Hari, Minggu, Bulan, Dekad & Abad).</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-xs text-cyan-400 font-semibold"><i class="fa-solid fa-play mr-1"></i> Mula Misi</span>
+                        <span id="lvl1-status" class="text-xs text-slate-400">Belum Selesai</span>
+                    </div>
+                </div>
+
+                <!-- Level 2 Card -->
+                <div onclick="startLevel(2)" class="glass-card p-5 rounded-2xl border-l-4 border-l-amber-400 cursor-pointer btn-bounce relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-amber-500/10 text-8xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <span class="bg-amber-500/20 text-amber-300 text-xs font-bold px-2.5 py-1 rounded-md border border-amber-500/30">TP 3</span>
+                    <h3 class="font-game text-xl font-bold text-amber-200 mt-2">Aras 2: Ayat Matematik</h3>
+                    <p class="text-xs text-slate-300 mt-1">Tambah & tolak hingga 3 nilai masa & tentukan kewajaran jawapan.</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-xs text-amber-400 font-semibold"><i class="fa-solid fa-play mr-1"></i> Mula Misi</span>
+                        <span id="lvl2-status" class="text-xs text-slate-400">Belum Selesai</span>
+                    </div>
+                </div>
+
+                <!-- Level 3 Card -->
+                <div onclick="startLevel(3)" class="glass-card p-5 rounded-2xl border-l-4 border-l-pink-500 cursor-pointer btn-bounce relative overflow-hidden group">
+                    <div class="absolute -right-4 -bottom-4 text-pink-500/10 text-8xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-user-ninja"></i>
+                    </div>
+                    <span class="bg-pink-500/20 text-pink-300 text-xs font-bold px-2.5 py-1 rounded-md border border-pink-500/30">TP 6</span>
+                    <h3 class="font-game text-xl font-bold text-pink-200 mt-2">Aras 3: Detektif Masa</h3>
+                    <p class="text-xs text-slate-300 mt-1">Penyelesaian masalah harian & situasi dunia sebenar yang mencabar.</p>
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-xs text-pink-400 font-semibold"><i class="fa-solid fa-play mr-1"></i> Mula Misi</span>
+                        <span id="lvl3-status" class="text-xs text-slate-400">Belum Selesai</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Helper Modal Launcher -->
+            <button onclick="toggleHelperModal()" class="inline-flex items-center space-x-2 text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 px-4 py-2 rounded-full border border-amber-500/30 transition">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Lihat Nota Formula Masa (Rujukan Rapid)</span>
+            </button>
+        </section>
+
+        <!-- SCREEN 2: GAMEPLAY CONTAINER -->
+        <section id="screen-game" class="hidden space-y-4">
+            <!-- Level Info & Progress Header -->
+            <div class="glass-card p-4 rounded-2xl flex flex-wrap justify-between items-center gap-3">
+                <div class="flex items-center space-x-3">
+                    <button onclick="confirmExit()" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-red-500/20 hover:text-red-400 border border-slate-700 flex items-center justify-center transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <span id="current-level-badge" class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-300 border border-indigo-400/30">
+                            Aras 1
+                        </span>
+                        <h2 id="current-level-title" class="font-game text-lg text-amber-300 font-bold">
+                            Padanan Unit Masa
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="flex-1 max-w-xs mx-auto">
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span>Kemajuan Soalan</span>
+                        <span id="progress-text">1 / 5</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
+                        <div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-indigo-500 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- Helper Toolbox Button -->
+                <button onclick="toggleHelperModal()" class="bg-indigo-600/40 hover:bg-indigo-600/70 text-indigo-200 border border-indigo-400/40 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-calculator text-amber-400"></i>
+                    <span>Papan Pengiraan</span>
+                </button>
+            </div>
+
+            <!-- LEVEL 1: MATCHING CARDS INTERFACE -->
+            <div id="level-1-container" class="hidden space-y-4">
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <p class="text-sm text-cyan-200">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Klik satu kad unit di sebelah kiri, kemudian klik padanan nilainya yang betul di sebelah kanan!
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Left Column (Units) -->
+                    <div id="l1-left-col" class="space-y-3"></div>
+                    <!-- Right Column (Equivalents) -->
+                    <div id="l1-right-col" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- LEVEL 2 & 3: QUESTION & MULTIPLE CHOICE INTERFACE -->
+            <div id="level-quiz-container" class="hidden space-y-4">
+                <!-- Question Card -->
+                <div class="glass-card p-6 rounded-2xl relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-3">
+                        <span id="q-category" class="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-md border border-amber-400/20">
+                            JAM DAN HARI
+                        </span>
+                        <span id="q-tp-tag" class="text-xs font-bold text-slate-400">TP 3</span>
+                    </div>
+
+                    <!-- Context Story/Scenario (if Level 3) -->
+                    <div id="q-scenario" class="hidden bg-slate-900/60 border-l-4 border-l-pink-500 p-3.5 rounded-r-xl text-sm text-pink-100 mb-4 italic">
+                    </div>
+
+                    <!-- Main Math Equation / Question -->
+                    <h3 id="q-text" class="font-game text-xl md:text-2xl text-slate-100 font-bold leading-relaxed mb-4">
+                        2 hari 14 jam + 1 hari 18 jam + 3 hari 8 jam = ?
+                    </h3>
+
+                    <!-- Visual Hint Box -->
+                    <div id="q-hint" class="text-xs text-indigo-300 bg-indigo-950/40 p-3 rounded-xl border border-indigo-800/50 flex items-center space-x-2">
+                        <i class="fa-regular fa-lightbulb text-amber-400 text-base"></i>
+                        <span id="q-hint-text">Ingat: 1 hari = 24 jam. Kumpul jam jika lebih daripada 24!</span>
+                    </div>
+                </div>
+
+                <!-- Options Grid -->
+                <div id="quiz-options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Buttons Generated Here -->
+                </div>
+
+                <!-- Explanation/Feedback Alert (Hidden by default) -->
+                <div id="feedback-card" class="hidden glass-card p-4 rounded-2xl border-l-4 transition-all">
+                    <div class="flex items-start space-x-3">
+                        <div id="feedback-icon" class="text-2xl"></div>
+                        <div class="flex-1">
+                            <h4 id="feedback-title" class="font-game font-bold text-base"></h4>
+                            <p id="feedback-msg" class="text-xs md:text-sm text-slate-300 mt-1"></p>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-right">
+                        <button id="next-q-btn" onclick="nextQuestion()" class="bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-game font-bold px-5 py-2 rounded-xl text-sm shadow-lg btn-bounce">
+                            Seterusnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: RESULTS & CERTIFICATE -->
+        <section id="screen-result" class="hidden space-y-6 text-center py-4">
+            <div id="cert-card" class="glass-card p-6 md:p-8 rounded-3xl max-w-2xl mx-auto border-2 border-amber-400/50 relative overflow-hidden">
+                <!-- Decorative Corner Badges -->
+                <div class="absolute -top-10 -right-10 w-28 h-28 bg-amber-400/10 rounded-full blur-xl pointer-events-none"></div>
+
+                <div class="inline-block p-3 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-3xl mb-3">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <h2 class="font-game text-2xl md:text-4xl font-extrabold text-amber-300">
+                    SIJIL ANUGERAH KEMBARA WAKTU
+                </h2>
+                <p class="text-xs uppercase tracking-widest text-slate-400 mt-1">Dianugerahkan Kepada:</p>
+                <h3 id="res-player-name" class="font-game text-2xl text-cyan-300 font-bold my-1">Pengembara Bijak</h3>
+
+                <p class="text-xs text-slate-300 max-w-md mx-auto my-3">
+                    Telah berjaya menyelesaikan cabaran matematik Tambah & Tolak Tiga Nilai Masa KSSR Semakan Tahun 4!
+                </p>
+
+                <!-- Stars Rating -->
+                <div id="stars-container" class="flex justify-center space-x-2 text-2xl text-amber-400 my-4">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+
+                <!-- Final Score Breakdown Table -->
+                <div class="bg-slate-900/80 rounded-2xl p-4 text-left border border-slate-800 space-y-2 text-xs md:text-sm my-4">
+                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                        <span class="text-slate-400">Jumlah Skor Mata:</span>
+                        <span id="res-score" class="font-bold text-amber-300">0</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-800 pb-2">
+                        <span class="text-slate-400">Penguasaan Topik:</span>
+                        <span id="res-tp-level" class="font-bold text-cyan-300">TP 6 (Cemerlang)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Pencapaian Soalan:</span>
+                        <span id="res-accuracy" class="font-bold text-emerald-400">100% Tepat</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap justify-center gap-3 mt-6">
+                    <button onclick="showScreen('screen-welcome')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-game font-bold px-5 py-2.5 rounded-xl text-sm border border-slate-700 btn-bounce">
+                        <i class="fa-solid fa-house mr-1"></i> Menu Utama
+                    </button>
+                    <button onclick="restartAll()" class="bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-game font-bold px-6 py-2.5 rounded-xl text-sm shadow-lg btn-bounce">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Main Semula
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- HELPER MODAL: PAPAN PENGIRAAN / RUMAH MASA & FORMULA -->
+    <div id="helper-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card max-w-xl w-full rounded-3xl border border-indigo-500/40 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <div class="flex items-center space-x-2 text-amber-400 font-game font-bold text-lg">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>Papan Pengiraan & Formula Masa</span>
+                </div>
+                <button onclick="toggleHelperModal()" class="text-slate-400 hover:text-white w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Formula Grid Reference -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-indigo-500/20">
+                    <span class="text-indigo-300 font-bold">Jam & Hari:</span>
+                    <p class="text-amber-200 mt-0.5">1 hari = 24 jam</p>
+                </div>
+                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-indigo-500/20">
+                    <span class="text-indigo-300 font-bold">Hari & Minggu:</span>
+                    <p class="text-amber-200 mt-0.5">1 minggu = 7 hari</p>
+                </div>
+                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-indigo-500/20">
+                    <span class="text-indigo-300 font-bold">Bulan & Tahun:</span>
+                    <p class="text-amber-200 mt-0.5">1 tahun = 12 bulan</p>
+                </div>
+                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-indigo-500/20">
+                    <span class="text-indigo-300 font-bold">Tahun, Dekad & Abad:</span>
+                    <p class="text-amber-200 mt-0.5">1 dekad = 10 tahun | 1 abad = 100 tahun / 10 dekad</p>
+                </div>
+            </div>
+
+            <!-- Interactive Working Pad (Rumah Masa) -->
+            <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-3">
+                <h4 class="font-game text-sm text-cyan-300 font-bold">Rumah Pengiraan Interaktif:</h4>
+                <p class="text-xs text-slate-400">Gunakan simulator ini untuk menyemak kumpul semula unit masa:</p>
+                
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="text-slate-400 block mb-1">Pilih Unit:</label>
+                        <select id="calc-unit-type" onchange="updateCalcPlaceholder()" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none">
+                            <option value="hari-jam">Hari & Jam (Max 24 jam)</option>
+                            <option value="minggu-hari">Minggu & Hari (Max 7 hari)</option>
+                            <option value="tahun-bulan">Tahun & Bulan (Max 12 bulan)</option>
+                            <option value="dekad-tahun">Dekad & Tahun (Max 10 tahun)</option>
+                            <option value="abad-dekad">Abad & Dekad (Max 10 dekad)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Masukkan Nilai Kecil:</label>
+                        <input type="number" id="calc-input-val" placeholder="Contoh: 30" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-amber-300 font-bold focus:outline-none">
+                    </div>
+                </div>
+
+                <button onclick="calculateTukarUnit()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-game font-bold py-2 rounded-xl text-xs transition">
+                    Tukar & Tukar Kumpul Unit
+                </button>
+
+                <div id="calc-result" class="hidden bg-indigo-950/60 border border-indigo-500/30 p-3 rounded-xl text-xs text-center font-bold text-amber-300">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO SYSTEM (Web Audio API Synthesizer) -->
+    <script>
+        // Web Audio API Sound Effects Generator (No external MP3 files needed)
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(164.81, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                // Celebration Chime
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.15, now + idx * 0.1);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.3);
+                    o.start(now + idx * 0.1);
+                    o.stop(now + idx * 0.1 + 0.3);
+                });
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+            }
+        }
+    </script>
+
+    <!-- GAME LOGIC SCRIPT -->
+    <script>
+        // Game State Variables
+        let playerName = "Pengembara Bijak";
+        let score = 0;
+        let combo = 0;
+        let currentLevel = 1;
+        let currentQuestionIdx = 0;
+        let questionsList = [];
+        let levelCompletionStatus = { 1: false, 2: false, 3: false };
+        let selectedL1Left = null;
+        let matchesFoundL1 = 0;
+
+        // Level 1 Data: Unit Match Cards
+        const level1Pairs = [
+            { id: 1, unit: "1 hari", equiv: "24 jam" },
+            { id: 2, unit: "1 minggu", equiv: "7 hari" },
+            { id: 3, unit: "1 tahun", equiv: "12 bulan" },
+            { id: 4, unit: "1 dekad", equiv: "10 tahun" },
+            { id: 5, unit: "1 abad", equiv: "100 tahun / 10 dekad" }
+        ];
+
+        // Level 2 Questions (TP 3: Equations & Reasoning)
+        const level2Questions = [
+            {
+                category: "JAM DAN HARI",
+                equation: "2 hari 14 jam + 1 hari 18 jam + 3 hari 8 jam = ?",
+                hint: "Tambah jam: 14 + 18 + 8 = 40 jam. Tukar 40 jam = 1 hari 16 jam. Kumpul hari!",
+                options: [
+                    { text: "7 hari 16 jam", correct: true },
+                    { text: "6 hari 16 jam", correct: false },
+                    { text: "7 hari 8 jam", correct: false },
+                    { text: "8 hari 4 jam", correct: false }
+                ],
+                explain: "14 jam + 18 jam + 8 jam = 40 jam (1 hari 16 jam). Jumlah hari = 2 + 1 + 3 + 1 = 7 hari 16 jam."
+            },
+            {
+                category: "BULAN DAN TAHUN",
+                equation: "15 tahun 4 bulan - 6 tahun 9 bulan - 2 tahun 8 bulan = ?",
+                hint: "Pinjam 1 tahun (12 bulan) dari tahun jika bulan tidak cukup ditolak!",
+                options: [
+                    { text: "5 tahun 11 bulan", correct: true },
+                    { text: "6 tahun 2 bulan", correct: false },
+                    { text: "5 tahun 8 bulan", correct: false },
+                    { text: "6 tahun 11 bulan", correct: false }
+                ],
+                explain: "15 thn 4 bln - 6 thn 9 bln = 8 thn 7 bln. Seterusnya 8 thn 7 bln - 2 thn 8 bln = 5 thn 11 bln."
+            },
+            {
+                category: "HARI DAN MINGGU",
+                equation: "12 minggu 2 hari - 4 minggu 5 hari + 3 minggu 4 hari = ?",
+                hint: "Lakukan penolakan dahulu, kemudian tambahkan dengan nilai ketiga.",
+                options: [
+                    { text: "11 minggu 1 hari", correct: true },
+                    { text: "10 minggu 6 hari", correct: false },
+                    { text: "11 minggu 5 hari", correct: false },
+                    { text: "12 minggu 1 hari", correct: false }
+                ],
+                explain: "12 mggu 2 hari - 4 mggu 5 hari = 7 mggu 4 hari. Tambah 3 mggu 4 hari = 10 mggu 8 hari = 11 mggu 1 hari."
+            },
+            {
+                category: "DEKAD DAN ABAD",
+                equation: "3 abad 2 dekad + 1 abad 9 dekad + 2 abad 4 dekad = ?",
+                hint: "Ingat: 10 dekad = 1 abad. Kumpul dekad jika melebihi 10!",
+                options: [
+                    { text: "7 abad 5 dekad", correct: true },
+                    { text: "6 abad 15 dekad", correct: false },
+                    { text: "7 abad 2 dekad", correct: false },
+                    { text: "8 abad 1 dekad", correct: false }
+                ],
+                explain: "2 + 9 + 4 = 15 dekad (1 abad 5 dekad). Jumlah abad = 3 + 1 + 2 + 1 = 7 abad 5 dekad."
+            },
+            {
+                category: "PENGESAHAN KEWAJARAN (TP 3)",
+                equation: "Adakah 8 dekad 2 tahun - 3 dekad 7 tahun - 1 dekad 9 tahun = 2 dekad 6 tahun?",
+                hint: "Kira langkah demi langkah secara teliti dengan penukaran pinjam 1 dekad = 10 tahun.",
+                options: [
+                    { text: "BENAR", correct: true },
+                    { text: "SALAH", correct: false }
+                ],
+                explain: "8 dkd 2 thn - 3 dkd 7 thn = 4 dkd 5 thn. Tolak 1 dkd 9 thn = 2 dkd 6 thn. Maka jawapan BENAR!"
+            }
+        ];
+
+        // Level 3 Questions (TP 6: Real World Problem Solving)
+        const level3Questions = [
+            {
+                category: "JAM DAN HARI (MISI KAPAL)",
+                scenario: "🛳️ Kapal kargo 'Pelayaran Masa' berlayar dari Pelabuhan A ke Pelabuhan B selama 1 hari 16 jam. Kapal berehat di Pelabuhan B selama 18 jam, kemudian berlayar ke Pelabuhan C selama 2 hari 10 jam.",
+                equation: "Berapakah jumlah masa keseluruhan perjalanan kapal kargo tersebut?",
+                hint: "Tambah ketiga-tiga nilai masa: 1 hari 16 jam + 18 jam + 2 hari 10 jam.",
+                options: [
+                    { text: "4 hari 20 jam", correct: true },
+                    { text: "3 hari 44 jam", correct: false },
+                    { text: "5 hari 10 jam", correct: false },
+                    { text: "4 hari 12 jam", correct: false }
+                ],
+                explain: "Jumlah jam = 16 + 18 + 10 = 44 jam (1 hari 20 jam). Jumlah hari = 1 + 2 + 1 = 4 hari 20 jam."
+            },
+            {
+                category: "HARI DAN MINGGU (PROJEK REKA BENTUK)",
+                scenario: "🎨 Encik Hafiz menyiapkan Projek 1 dalam 3 minggu 4 hari & Projek 2 dalam 2 minggu 6 hari. Projek 3 mengambil masa 1 minggu 5 hari LEBIH SINGKAT daripada jumlah Projek 1 & 2.",
+                equation: "Berapakah masa yang diambil oleh Encik Hafiz untuk menyiapkan Projek 3?",
+                hint: "Langkah 1: Tambah Projek 1 & 2. Langkah 2: Tolak 1 minggu 5 hari.",
+                options: [
+                    { text: "4 minggu 5 hari", correct: true },
+                    { text: "5 minggu 2 hari", correct: false },
+                    { text: "4 minggu 2 hari", correct: false },
+                    { text: "6 minggu 3 hari", correct: false }
+                ],
+                explain: "Jumlah P1+P2 = 6 mggu 3 hari. Masa P3 = 6 mggu 3 hari - 1 mggu 5 hari = 4 mggu 5 hari."
+            },
+            {
+                category: "BULAN DAN TAHUN (PEMBANGUNAN PROJEK)",
+                scenario: "🏗️ Pembangunan Blok A mengambil masa 4 tahun 8 bulan, Blok B mengambil masa 2 tahun 10 bulan, manakala Blok C mengambil masa 3 tahun 5 bulan.",
+                equation: "Berapakah jumlah masa pembinaan ketiga-tiga blok bangunan tersebut?",
+                hint: "12 bulan = 1 tahun. Kumpul bulan melebihi 12 menjadi tahun.",
+                options: [
+                    { text: "10 tahun 11 bulan", correct: true },
+                    { text: "9 tahun 23 bulan", correct: false },
+                    { text: "10 tahun 5 bulan", correct: false },
+                    { text: "11 tahun 2 bulan", correct: false }
+                ],
+                explain: "Bulan = 8 + 10 + 5 = 23 bulan (1 tahun 11 bulan). Tahun = 4 + 2 + 3 + 1 = 10 tahun 11 bulan."
+            },
+            {
+                category: "DEKAD DAN ABAD (SEJARAH WARISAN)",
+                scenario: "🏛️ Kubu bersejarah berumur 2 abad 4 dekad. Masjid purba dibina 8 dekad SELEPAS kubu itu, dan jambatan lama dibina 3 dekad SELEPAS masjid purba.",
+                equation: "Hitung umur jambatan lama itu dalam abad dan dekad.",
+                hint: "Tambah ketiga-tiga nilai: 2 abad 4 dekad + 8 dekad + 3 dekad.",
+                options: [
+                    { text: "3 abad 5 dekad", correct: true },
+                    { text: "2 abad 15 dekad", correct: false },
+                    { text: "3 abad 2 dekad", correct: false },
+                    { text: "4 abad 1 dekad", correct: false }
+                ],
+                explain: "Dekad = 4 + 8 + 3 = 15 dekad (1 abad 5 dekad). Abad = 2 + 1 = 3 abad 5 dekad."
+            },
+            {
+                category: "BAKI MASA PROGRAM SUKARELAWAN",
+                scenario: "🌱 Persatuan diberi sasaran 10 minggu untuk program hijau. Fasa Pendaftaran mengambil 3 minggu 5 hari dan Fasa Pelaksanaan mengambil 4 minggu 4 hari.",
+                equation: "Berapakah BAKI MASA yang tinggal untuk fasa penutupan dan laporan?",
+                hint: "Masa diguna = (3 mggu 5 hari + 4 mggu 4 hari). Baki = 10 minggu - Masa diguna.",
+                options: [
+                    { text: "1 minggu 5 hari", correct: true },
+                    { text: "2 minggu 2 hari", correct: false },
+                    { text: "1 minggu 2 hari", correct: false },
+                    { text: "2 minggu 5 hari", correct: false }
+                ],
+                explain: "Masa diguna = 8 mggu 2 hari. Baki = 10 mggu 0 hari - 8 mggu 2 hari = 1 minggu 5 hari."
+            }
+        ];
+
+        // DOM Screen Navigation
+        function showScreen(screenId) {
+            playSound('click');
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Start Selected Level
+        function startLevel(lvl) {
+            // Read Name
+            const nameInput = document.getElementById('player-name-input').value.trim();
+            if (nameInput) playerName = nameInput;
+
+            currentLevel = lvl;
+            currentQuestionIdx = 0;
+            combo = 0;
+            updateComboBadge();
+
+            document.getElementById('current-level-badge').innerText = `Aras ${lvl}`;
+
+            if (lvl === 1) {
+                document.getElementById('current-level-title').innerText = "Padanan Unit Masa (TP 1)";
+                setupLevel1();
+            } else if (lvl === 2) {
+                document.getElementById('current-level-title').innerText = "Ayat Matematik (TP 3)";
+                questionsList = [...level2Questions];
+                setupLevelQuiz();
+            } else if (lvl === 3) {
+                document.getElementById('current-level-title').innerText = "Detektif Masa (TP 6)";
+                questionsList = [...level3Questions];
+                setupLevelQuiz();
+            }
+
+            showScreen('screen-game');
+        }
+
+        // LEVEL 1: SETUP MATCHING CARDS
+        function setupLevel1() {
+            document.getElementById('level-1-container').classList.remove('hidden');
+            document.getElementById('level-quiz-container').classList.add('hidden');
+
+            selectedL1Left = null;
+            matchesFoundL1 = 0;
+            updateProgressBar(0, level1Pairs.length);
+
+            // Shuffle equivalents for right column
+            const shuffledEquivs = [...level1Pairs].sort(() => Math.random() - 0.5);
+
+            const leftCol = document.getElementById('l1-left-col');
+            const rightCol = document.getElementById('l1-right-col');
+
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+
+            level1Pairs.forEach(item => {
+                leftCol.innerHTML += `
+                    <div id="l1-left-${item.id}" onclick="selectL1Left(${item.id})" 
+                         class="card-flip glass-card p-4 rounded-xl border border-cyan-500/30 text-cyan-200 font-game font-bold text-center cursor-pointer flex justify-between items-center">
+                        <span><i class="fa-solid fa-clock text-amber-400 mr-2"></i>${item.unit}</span>
+                        <i class="fa-regular fa-circle text-slate-500" id="l1-left-icon-${item.id}"></i>
+                    </div>
+                `;
+            });
+
+            shuffledEquivs.forEach(item => {
+                rightCol.innerHTML += `
+                    <div id="l1-right-${item.id}" onclick="selectL1Right(${item.id})" 
+                         class="card-flip glass-card p-4 rounded-xl border border-indigo-500/30 text-amber-300 font-game font-bold text-center cursor-pointer flex justify-between items-center">
+                        <span>${item.equiv}</span>
+                        <i class="fa-regular fa-circle text-slate-500" id="l1-right-icon-${item.id}"></i>
+                    </div>
+                `;
+            });
+        }
+
+        function selectL1Left(id) {
+            playSound('click');
+            // Remove highlight from previous
+            document.querySelectorAll('#l1-left-col > div').forEach(el => {
+                if (!el.classList.contains('bg-emerald-950/80')) {
+                    el.classList.remove('border-amber-400', 'bg-amber-400/20');
+                }
+            });
+
+            const target = document.getElementById(`l1-left-${id}`);
+            if (target.classList.contains('pointer-events-none')) return;
+
+            target.classList.add('border-amber-400', 'bg-amber-400/20');
+            selectedL1Left = id;
+        }
+
+        function selectL1Right(id) {
+            if (!selectedL1Left) {
+                alert("Sila pilih unit di sebelah kiri dahulu!");
+                return;
+            }
+
+            const rightTarget = document.getElementById(`l1-right-${id}`);
+            if (rightTarget.classList.contains('pointer-events-none')) return;
+
+            if (selectedL1Left === id) {
+                // Correct Match
+                playSound('correct');
+                addScore(100);
+
+                const leftTarget = document.getElementById(`l1-left-${selectedL1Left}`);
+
+                // Mark Correct
+                [leftTarget, rightTarget].forEach(el => {
+                    el.className = "glass-card p-4 rounded-xl border-2 border-emerald-500 bg-emerald-950/80 text-emerald-200 font-game font-bold flex justify-between items-center pointer-events-none";
+                });
+
+                document.getElementById(`l1-left-icon-${selectedL1Left}`).className = "fa-solid fa-circle-check text-emerald-400";
+                document.getElementById(`l1-right-icon-${id}`).className = "fa-solid fa-circle-check text-emerald-400";
+
+                selectedL1Left = null;
+                matchesFoundL1++;
+                updateProgressBar(matchesFoundL1, level1Pairs.length);
+
+                if (matchesFoundL1 === level1Pairs.length) {
+                    levelCompletionStatus[1] = true;
+                    setTimeout(() => {
+                        playSound('win');
+                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                        alert("Tahniah! Kamu telah menguasai Aras 1 (TP 1)!");
+                        showScreen('screen-welcome');
+                        updateMenuStatus();
+                    }, 600);
+                }
+            } else {
+                // Wrong Match
+                playSound('wrong');
+                rightTarget.classList.add('border-red-500', 'bg-red-500/20');
+                setTimeout(() => {
+                    rightTarget.classList.remove('border-red-500', 'bg-red-500/20');
+                }, 500);
+            }
+        }
+
+        // LEVEL 2 & 3: SETUP QUIZ
+        function setupLevelQuiz() {
+            document.getElementById('level-1-container').classList.add('hidden');
+            document.getElementById('level-quiz-container').classList.remove('hidden');
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            document.getElementById('feedback-card').classList.add('hidden');
+
+            const q = questionsList[currentQuestionIdx];
+            updateProgressBar(currentQuestionIdx + 1, questionsList.length);
+
+            document.getElementById('q-category').innerText = q.category;
+            document.getElementById('q-tp-tag').innerText = `TP ${currentLevel === 2 ? 3 : 6}`;
+            document.getElementById('q-text').innerText = q.equation;
+            document.getElementById('q-hint-text').innerText = q.hint;
+
+            const scenarioBox = document.getElementById('q-scenario');
+            if (q.scenario) {
+                scenarioBox.innerText = q.scenario;
+                scenarioBox.classList.remove('hidden');
+            } else {
+                scenarioBox.classList.add('hidden');
+            }
+
+            // Options Grid
+            const grid = document.getElementById('quiz-options-grid');
+            grid.innerHTML = '';
+
+            // Shuffle Options
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach((opt, idx) => {
+                grid.innerHTML += `
+                    <button onclick="checkAnswer(${opt.correct}, this)" 
+                            class="quiz-opt-btn card-flip glass-card p-4 rounded-xl border border-slate-700 text-left hover:border-amber-400 font-game font-bold text-slate-200 text-sm md:text-base flex items-center space-x-3 transition">
+                        <span class="w-7 h-7 rounded-lg bg-slate-800 text-amber-400 border border-slate-700 flex items-center justify-center text-xs flex-shrink-0">
+                            ${String.fromCharCode(65 + idx)}
+                        </span>
+                        <span>${opt.text}</span>
+                    </button>
+                `;
+            });
+        }
+
+        function checkAnswer(isCorrect, btnElement) {
+            // Disable all option buttons
+            document.querySelectorAll('.quiz-opt-btn').forEach(btn => btn.classList.add('pointer-events-none'));
+
+            const q = questionsList[currentQuestionIdx];
+            const feedbackCard = document.getElementById('feedback-card');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackMsg = document.getElementById('feedback-msg');
+            const feedbackIcon = document.getElementById('feedback-icon');
+
+            if (isCorrect) {
+                playSound('correct');
+                combo++;
+                addScore(150 * combo);
+                updateComboBadge();
+
+                btnElement.classList.add('border-2', 'border-emerald-500', 'bg-emerald-950/80', 'text-emerald-200');
+
+                feedbackCard.className = "glass-card p-4 rounded-2xl border-l-4 border-l-emerald-500 bg-emerald-950/30";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i>`;
+                feedbackTitle.className = "font-game font-bold text-base text-emerald-300";
+                feedbackTitle.innerText = "Tahniah, Jawapan Tepat!";
+                feedbackMsg.innerText = q.explain;
+            } else {
+                playSound('wrong');
+                combo = 0;
+                updateComboBadge();
+
+                btnElement.classList.add('border-2', 'border-red-500', 'bg-red-950/80', 'text-red-200');
+
+                feedbackCard.className = "glass-card p-4 rounded-2xl border-l-4 border-l-red-500 bg-red-950/30";
+                feedbackIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i>`;
+                feedbackTitle.className = "font-game font-bold text-base text-red-300";
+                feedbackTitle.innerText = "Kurang Tepat, Cuba Teliti Semula!";
+                feedbackMsg.innerText = `Langkah Penyelesaian: ${q.explain}`;
+            }
+
+            feedbackCard.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            currentQuestionIdx++;
+
+            if (currentQuestionIdx < questionsList.length) {
+                renderQuestion();
+            } else {
+                // Level Completed
+                levelCompletionStatus[currentLevel] = true;
+                playSound('win');
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+
+                if (currentLevel === 3 || (levelCompletionStatus[1] && levelCompletionStatus[2] && levelCompletionStatus[3])) {
+                    showFinalCertificate();
+                } else {
+                    alert(`Syabas! Kamu telah menyelesaikan Aras ${currentLevel}!`);
+                    showScreen('screen-welcome');
+                    updateMenuStatus();
+                }
+            }
+        }
+
+        // Helper Utility Functions
+        function addScore(pts) {
+            score += pts;
+            document.getElementById('player-score').innerText = score;
+        }
+
+        function updateComboBadge() {
+            const badge = document.getElementById('combo-badge');
+            if (combo > 1) {
+                badge.innerText = `${combo}x COMBO!`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function updateProgressBar(curr, total) {
+            document.getElementById('progress-text').innerText = `${curr} / ${total}`;
+            const pct = (curr / total) * 100;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        }
+
+        function updateMenuStatus() {
+            if (levelCompletionStatus[1]) {
+                document.getElementById('lvl1-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check"></i> Selesai</span>`;
+            }
+            if (levelCompletionStatus[2]) {
+                document.getElementById('lvl2-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check"></i> Selesai</span>`;
+            }
+            if (levelCompletionStatus[3]) {
+                document.getElementById('lvl3-status').innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check"></i> Selesai</span>`;
+            }
+        }
+
+        function showFinalCertificate() {
+            document.getElementById('res-player-name').innerText = playerName;
+            document.getElementById('res-score').innerText = score;
+
+            showScreen('screen-result');
+        }
+
+        function restartAll() {
+            score = 0;
+            combo = 0;
+            document.getElementById('player-score').innerText = '0';
+            levelCompletionStatus = { 1: false, 2: false, 3: false };
+            updateMenuStatus();
+            showScreen('screen-welcome');
+        }
+
+        function confirmExit() {
+            if (confirm("Adakah anda pasti mahu keluar ke menu utama? Kemajuan aras ini akan disimpan.")) {
+                showScreen('screen-welcome');
+            }
+        }
+
+        function toggleHelperModal() {
+            playSound('click');
+            const modal = document.getElementById('helper-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        // Interactive Conversion Calculator inside Modal
+        function calculateTukarUnit() {
+            playSound('click');
+            const type = document.getElementById('calc-unit-type').value;
+            const val = parseInt(document.getElementById('calc-input-val').value) || 0;
+            const resBox = document.getElementById('calc-result');
+
+            let resText = "";
+
+            if (type === 'hari-jam') {
+                const h = Math.floor(val / 24);
+                const j = val % 24;
+                resText = `${val} jam = ${h} hari ${j} jam`;
+            } else if (type === 'minggu-hari') {
+                const m = Math.floor(val / 7);
+                const h = val % 7;
+                resText = `${val} hari = ${m} minggu ${h} hari`;
+            } else if (type === 'tahun-bulan') {
+                const t = Math.floor(val / 12);
+                const b = val % 12;
+                resText = `${val} bulan = ${t} tahun ${b} bulan`;
+            } else if (type === 'dekad-tahun') {
+                const d = Math.floor(val / 10);
+                const t = val % 10;
+                resText = `${val} tahun = ${d} dekad ${t} tahun`;
+            } else if (type === 'abad-dekad') {
+                const a = Math.floor(val / 10);
+                const d = val % 10;
+                resText = `${val} dekad = ${a} abad ${d} dekad`;
+            }
+
+            resBox.innerText = resText;
+            resBox.classList.remove('hidden');
+        }
+
+        function updateCalcPlaceholder() {
+            document.getElementById('calc-result').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
